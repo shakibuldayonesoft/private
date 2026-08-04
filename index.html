@@ -14,9 +14,6 @@
     --text-dim:#aaaaaa;
     --border:#303030;
     --brand:#ff0033;
-    --chip-bg:#272727;
-    --chip-active-bg:#f1f1f1;
-    --chip-active-text:#0f0f0f;
     --skeleton:#222;
     --header-h:56px;
     --sidebar-w:240px;
@@ -29,9 +26,6 @@
     --text:#0f0f0f;
     --text-dim:#606060;
     --border:#e5e5e5;
-    --chip-bg:#f2f2f2;
-    --chip-active-bg:#0f0f0f;
-    --chip-active-text:#ffffff;
     --skeleton:#eee;
     --shadow:0 4px 32px rgba(0,0,0,.25);
   }
@@ -139,25 +133,11 @@
   }
   .content.wide{margin-left:0;}
 
-  /* ============ CHIPS ============ */
-  .chipbar{
-    position:sticky;top:var(--header-h);z-index:30;background:var(--bg);
-    display:flex;gap:12px;overflow-x:auto;padding:12px 24px;
-    scrollbar-width:none;
-  }
-  .chipbar::-webkit-scrollbar{display:none;}
-  .chip{
-    flex:none;padding:0 12px;height:32px;line-height:32px;
-    background:var(--chip-bg);border-radius:8px;font-size:14px;white-space:nowrap;
-  }
-  .chip:hover{background:var(--bg-hover);}
-  .chip.active{background:var(--chip-active-bg);color:var(--chip-active-text);}
-
   /* ============ VIDEO GRID ============ */
   .grid{
-    display:grid;gap:40px 16px;
+    display:grid;gap:32px 16px;
     grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
-    padding:8px 24px 60px;
+    padding:24px 24px 60px;
   }
 
   .card{cursor:pointer;display:flex;flex-direction:column;}
@@ -190,17 +170,10 @@
     border-top:10px solid transparent;border-bottom:10px solid transparent;margin-left:4px;
   }
 
-  .meta{display:flex;gap:12px;padding-top:12px;}
-  .ch-avatar{
-    width:36px;height:36px;border-radius:50%;flex:none;object-fit:cover;
-    background:var(--bg-hover);
-  }
-  .meta-text{min-width:0;flex:1;}
   .title{
-    font-size:16px;font-weight:500;line-height:1.4;margin:0 0 4px;
+    font-size:16px;font-weight:500;line-height:1.4;margin:12px 0 0;
     display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
   }
-  .channel,.stats{font-size:14px;color:var(--text-dim);line-height:1.4;}
 
   .empty{
     grid-column:1/-1;text-align:center;padding:80px 20px;color:var(--text-dim);
@@ -218,8 +191,7 @@
     .content{margin-left:0;}
   }
   @media (max-width:900px){
-    .grid{gap:28px 16px;padding:8px 16px 60px;}
-    .chipbar{padding:12px 16px;}
+    .grid{gap:24px 16px;padding:20px 16px 60px;}
   }
   @media (min-width:761px){
     .search-toggle{display:none;}
@@ -236,11 +208,9 @@
   }
   /* ফোন: এক কলাম, YouTube অ্যাপের মতো edge-to-edge thumbnail */
   @media (max-width:600px){
-    .grid{grid-template-columns:1fr;gap:24px;padding:4px 0 72px;}
+    .grid{grid-template-columns:1fr;gap:24px;padding:12px 0 72px;}
     .thumb-wrap{border-radius:0;}
-    .meta{padding:12px 12px 0;}
-    .title{font-size:15px;}
-    .channel,.stats{font-size:13px;}
+    .title{font-size:15px;margin:10px 12px 0;}
   }
 </style>
 </head>
@@ -248,98 +218,58 @@
 
 <!-- ================================================================
      ⬇⬇⬇  এখানে ভিডিও যোগ করুন / এডিট করুন  ⬇⬇⬇
-     শুধু  image  আর  video  লিংক দিলেই চলবে — বাকিগুলো optional।
-     image ফাঁকা রাখলে YouTube/Vimeo লিংক থেকে thumbnail অটো আসবে।
+     মাত্র ৪টা ফিল্ড:  title | thumbnail | video | duration
+     thumbnail ফাঁকা রাখলে YouTube/Vimeo লিংক থেকে অটো নিয়ে নেবে।
      ================================================================ -->
 <script>
 const VIDEOS = [
   {
     title: "Building a YouTube Clone with HTML, CSS & JavaScript",
-    image: "https://www.desitales2.com/videos/contents/videos_screenshots/3000/3417/320x180/1.jpg",
+    thumbnail: "https://www.desitales2.com/videos/contents/videos_screenshots/3000/3417/320x180/1.jpg",
     video: "https://cdn.desitales2.com/3000/3417/3417.mp4",
-    channel: "WebCoders BD",
-    avatar: "",
-    views: "1.2M views",
-    date: "2 weeks ago",
-    duration: "12:45",
-    tag: "Web Dev"
+    duration: "12:45"
   },
   {
     title: "CSS Grid in 10 Minutes — Complete Responsive Layout Guide",
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80",
+    thumbnail: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80",
     video: "https://youtu.be/9zBsdzdE4sM",
-    channel: "Design Lab",
-    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&q=80",
-    views: "845K views",
-    date: "1 month ago",
-    duration: "10:02",
-    tag: "CSS"
+    duration: "10:02"
   },
   {
     title: "Big Buck Bunny — Direct MP4 Playback Demo",
-    image: "https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=800&q=80",
+    thumbnail: "https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=800&q=80",
     video: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-    channel: "Blender Foundation",
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&q=80",
-    views: "3.4M views",
-    date: "3 days ago",
-    duration: "9:56",
-    tag: "Movies"
+    duration: "9:56"
   },
   {
     title: "JavaScript Async/Await Explained Simply for Beginners",
-    image: "https://images.unsplash.com/photo-1579468118864-1b9ea3c0db4a?w=800&q=80",
+    thumbnail: "",                                                    // ফাঁকা = অটো thumbnail
     video: "https://www.youtube.com/watch?v=V_Kr9OSfDeU",
-    channel: "Code With Shakib",
-    avatar: "https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=100&q=80",
-    views: "220K views",
-    date: "5 months ago",
-    duration: "18:30",
-    tag: "JavaScript"
+    duration: "18:30"
   },
   {
     title: "Lo-Fi Beats to Code & Relax — 1 Hour Mix",
-    image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&q=80",
+    thumbnail: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&q=80",
     video: "https://www.youtube.com/watch?v=jfKfPfyJRdk",
-    channel: "Chill Sounds",
-    avatar: "https://images.unsplash.com/photo-1511367461989-f85a21fda167?w=100&q=80",
-    views: "12M views",
-    date: "1 year ago",
-    duration: "1:02:11",
-    tag: "Music"
+    duration: "1:02:11"
   },
   {
     title: "Mountain Timelapse in 4K — Nature Cinematography",
-    image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80",
+    thumbnail: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80",
     video: "https://vimeo.com/76979871",
-    channel: "Wild Frames",
-    avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&q=80",
-    views: "98K views",
-    date: "6 days ago",
-    duration: "4:20",
-    tag: "Nature"
+    duration: "4:20"
   },
   {
     title: "Flutter vs React Native — Which One Should You Learn?",
-    image: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=800&q=80",
+    thumbnail: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=800&q=80",
     video: "https://www.youtube.com/watch?v=x0uinJvhNxI",
-    channel: "Dev Talks",
-    avatar: "https://images.unsplash.com/photo-1521119989659-a83eee488004?w=100&q=80",
-    views: "410K views",
-    date: "3 weeks ago",
-    duration: "22:07",
-    tag: "Mobile"
+    duration: "22:07"
   },
   {
     title: "Street Food Tour — Dhaka Old Town Night Market",
-    image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=80",
+    thumbnail: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=80",
     video: "https://www.youtube.com/watch?v=ScMzIvxBSi4",
-    channel: "Foodie Trails",
-    avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&q=80",
-    views: "1.8M views",
-    date: "4 months ago",
-    duration: "15:12",
-    tag: "Food"
+    duration: "15:12"
   }
 ];
 </script>
@@ -427,7 +357,6 @@ const VIDEOS = [
   <div class="scrim" id="scrim"></div>
 
   <div class="content" id="content">
-    <div class="chipbar" id="chipbar"></div>
     <div class="grid" id="grid"></div>
   </div>
 </div>
@@ -451,9 +380,9 @@ function parseVideo(url){
   return {type:"link", src:u};
 }
 
-/* image না দিলে লিংক থেকে thumbnail অটো বের করা */
+/* thumbnail না দিলে লিংক থেকে অটো বের করা */
 function thumbFor(v){
-  if(v.image) return v.image;
+  if(v.thumbnail) return v.thumbnail;
   const p = parseVideo(v.video);
   if(p.type === "youtube") return "https://i.ytimg.com/vi/" + p.id + "/hqdefault.jpg";
   if(p.type === "vimeo")   return "https://vumbnail.com/" + p.id + ".jpg";
@@ -489,56 +418,27 @@ function render(list){
     card.target = "_blank";
     card.rel = "noopener";
 
-    const avatarHTML = v.avatar
-      ? '<img class="ch-avatar" src="' + esc(v.avatar) + '" alt="" loading="lazy">'
-      : '<div class="ch-avatar" style="display:grid;place-items:center;font-size:14px;font-weight:600;background:linear-gradient(135deg,#ff0033,#ff8a00);color:#fff">'
-        + esc((v.channel || "?").trim().charAt(0).toUpperCase()) + '</div>';
-
     card.innerHTML =
       '<div class="thumb-wrap">' +
         '<img src="' + esc(thumbFor(v)) + '" alt="' + esc(v.title) + '" loading="lazy">' +
         (v.duration ? '<span class="duration">' + esc(v.duration) + '</span>' : '') +
         '<div class="play-overlay"><span></span></div>' +
       '</div>' +
-      '<div class="meta">' +
-        avatarHTML +
-        '<div class="meta-text">' +
-          '<h3 class="title">' + esc(v.title || "Untitled") + '</h3>' +
-          '<div class="channel">' + esc(v.channel) + '</div>' +
-          '<div class="stats">' + esc([v.views, v.date].filter(Boolean).join(" • ")) + '</div>' +
-        '</div>' +
-      '</div>';
+      '<h3 class="title">' + esc(v.title || "Untitled") + '</h3>';
 
     grid.appendChild(card);
   });
 }
 
 /* ============================================================
-   ফিল্টার চিপ + সার্চ
+   সার্চ — title দিয়ে ফিল্টার
    ============================================================ */
-const chipbar = document.getElementById("chipbar");
-const tags = ["All"].concat(Array.from(new Set(VIDEOS.map(function(v){ return v.tag; }).filter(Boolean))));
-let activeTag = "All";
 let query = "";
-
-tags.forEach(function(t){
-  const b = document.createElement("button");
-  b.className = "chip" + (t === "All" ? " active" : "");
-  b.textContent = t;
-  b.addEventListener("click", function(){
-    activeTag = t;
-    chipbar.querySelectorAll(".chip").forEach(function(c){ c.classList.toggle("active", c === b); });
-    apply();
-  });
-  chipbar.appendChild(b);
-});
 
 function apply(){
   const q = query.trim().toLowerCase();
   render(VIDEOS.filter(function(v){
-    const tagOk = activeTag === "All" || v.tag === activeTag;
-    const hay = [v.title, v.channel, v.tag].filter(Boolean).join(" ").toLowerCase();
-    return tagOk && (!q || hay.indexOf(q) !== -1);
+    return !q || String(v.title || "").toLowerCase().indexOf(q) !== -1;
   }));
 }
 
