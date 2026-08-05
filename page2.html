@@ -1,1 +1,722 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>VidTube — Video Gallery</title>
+<style>
+  /* ============ THEME TOKENS ============ */
+  :root{
+    --bg:#0f0f0f;
+    --bg-elev:#181818;
+    --bg-hover:#272727;
+    --text:#f1f1f1;
+    --text-dim:#aaaaaa;
+    --border:#303030;
+    --brand:#ff0033;
+    --skeleton:#222;
+    --header-h:56px;
+    --sidebar-w:240px;
+    --shadow:0 4px 32px rgba(0,0,0,.6);
+  }
+  html[data-theme="light"]{
+    --bg:#ffffff;
+    --bg-elev:#f9f9f9;
+    --bg-hover:#e5e5e5;
+    --text:#0f0f0f;
+    --text-dim:#606060;
+    --border:#e5e5e5;
+    --skeleton:#eee;
+    --shadow:0 4px 32px rgba(0,0,0,.25);
+  }
 
+  *,*::before,*::after{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:"Roboto","Segoe UI",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  body.no-scroll{overflow:hidden;}
+  a{color:inherit;text-decoration:none;}
+  button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer;}
+  img{display:block;max-width:100%;}
+
+  /* ============ HEADER ============ */
+  .masthead{
+    position:fixed;top:0;left:0;right:0;height:var(--header-h);z-index:60;
+    display:flex;align-items:center;gap:8px;
+    padding:0 16px;background:var(--bg);
+  }
+  .mast-start{display:flex;align-items:center;gap:8px;flex:1;min-width:0;}
+  .mast-end{display:flex;align-items:center;gap:4px;flex:1;justify-content:flex-end;}
+  .mast-mid{display:flex;align-items:center;gap:8px;flex:0 1 640px;}
+
+  .icon-btn{
+    width:40px;height:40px;border-radius:50%;
+    display:grid;place-items:center;flex:none;
+    transition:background .15s;
+  }
+  .icon-btn:hover{background:var(--bg-hover);}
+  .icon-btn svg{width:24px;height:24px;fill:currentColor;}
+
+  .logo{display:flex;align-items:center;gap:5px;font-size:20px;font-weight:700;letter-spacing:-1px;}
+  .logo .play{
+    width:29px;height:20px;background:var(--brand);border-radius:6px;
+    display:grid;place-items:center;flex:none;
+  }
+  .logo .play::after{content:"";border-left:8px solid #fff;border-top:5px solid transparent;border-bottom:5px solid transparent;margin-left:2px;}
+
+  .search-form{display:flex;flex:1;min-width:0;}
+  .search-box{
+    flex:1;min-width:0;display:flex;align-items:center;
+    border:1px solid var(--border);border-right:0;
+    border-radius:20px 0 0 20px;background:rgba(0,0,0,.15);
+    padding:0 4px 0 16px;height:40px;
+  }
+  html[data-theme="light"] .search-box{background:#fff;}
+  .search-box:focus-within{border-color:#3ea6ff;}
+  .search-box input{
+    flex:1;min-width:0;height:100%;border:0;outline:0;background:transparent;
+    color:var(--text);font-size:16px;
+  }
+  .search-box input::placeholder{color:var(--text-dim);}
+  .search-btn{
+    width:64px;height:40px;flex:none;
+    border:1px solid var(--border);border-radius:0 20px 20px 0;
+    background:var(--bg-hover);display:grid;place-items:center;
+  }
+  .search-btn svg{width:22px;height:22px;fill:currentColor;}
+
+  .avatar{
+    width:32px;height:32px;border-radius:50%;flex:none;
+    background:linear-gradient(135deg,#ff0033,#ff8a00);
+    display:grid;place-items:center;font-size:14px;font-weight:600;color:#fff;
+    margin-left:8px;
+  }
+
+  /* ============ LAYOUT ============ */
+  .layout{display:flex;padding-top:var(--header-h);}
+
+  .sidebar{
+    position:fixed;top:var(--header-h);bottom:0;left:0;width:var(--sidebar-w);
+    background:var(--bg);overflow-y:auto;overscroll-behavior:contain;
+    padding:12px;z-index:50;
+    transition:transform .2s ease;
+    scrollbar-width:thin;scrollbar-color:var(--border) transparent;
+  }
+  .sidebar::-webkit-scrollbar{width:8px;}
+  .sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px;}
+  .sidebar.collapsed{transform:translateX(-100%);}
+  .side-group{padding:8px 0;border-bottom:1px solid var(--border);}
+  .side-group:last-child{border-bottom:0;}
+  .side-title{font-size:14px;font-weight:500;color:var(--text-dim);padding:8px 12px;}
+  .side-link{
+    display:flex;align-items:center;gap:24px;
+    padding:0 12px;height:40px;border-radius:10px;font-size:14px;
+  }
+  .side-link svg{width:22px;height:22px;fill:currentColor;flex:none;}
+  .side-link:hover{background:var(--bg-hover);}
+  .side-link.active{background:var(--bg-hover);font-weight:500;}
+
+  .scrim{
+    position:fixed;inset:var(--header-h) 0 0 0;background:rgba(0,0,0,.5);
+    z-index:45;opacity:0;pointer-events:none;transition:opacity .2s;
+  }
+  .scrim.show{opacity:1;pointer-events:auto;}
+
+  .content{
+    flex:1;min-width:0;margin-left:var(--sidebar-w);
+    transition:margin-left .2s ease;
+  }
+  .content.wide{margin-left:0;}
+
+  /* ============ VIDEO GRID ============ */
+  .grid{
+    display:grid;gap:32px 16px;
+    grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+    padding:24px 24px 60px;
+  }
+
+  .card{cursor:pointer;display:flex;flex-direction:column;}
+  .card:focus-visible{outline:2px solid #3ea6ff;outline-offset:4px;border-radius:12px;}
+  .thumb-wrap{
+    position:relative;width:100%;aspect-ratio:16/9;
+    border-radius:12px;overflow:hidden;background:var(--skeleton);
+  }
+  .thumb-wrap img{
+    width:100%;height:100%;object-fit:cover;
+    transition:transform .35s ease;
+  }
+  .card:hover .thumb-wrap img{transform:scale(1.05);}
+  .duration{
+    position:absolute;right:8px;bottom:8px;
+    background:rgba(0,0,0,.8);color:#fff;
+    font-size:12px;font-weight:500;padding:1px 4px;border-radius:4px;
+  }
+  .play-overlay{
+    position:absolute;inset:0;display:grid;place-items:center;
+    background:rgba(0,0,0,.25);opacity:0;transition:opacity .2s;
+  }
+  .card:hover .play-overlay{opacity:1;}
+  .play-overlay span{
+    width:52px;height:52px;border-radius:50%;background:var(--brand);
+    display:grid;place-items:center;
+  }
+  .play-overlay span::after{
+    content:"";border-left:16px solid #fff;
+    border-top:10px solid transparent;border-bottom:10px solid transparent;margin-left:4px;
+  }
+
+  .title{
+    font-size:16px;font-weight:500;line-height:1.4;margin:12px 0 0;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+  }
+
+  .empty{
+    grid-column:1/-1;text-align:center;padding:80px 20px;color:var(--text-dim);
+  }
+  .empty strong{display:block;font-size:18px;color:var(--text);margin-bottom:6px;}
+
+  /* ============ RESPONSIVE ============ */
+  @media (max-width:1312px){
+    .grid{grid-template-columns:repeat(auto-fill,minmax(280px,1fr));}
+  }
+  /* ট্যাবলেট: সাইডবার push না করে overlay হবে */
+  @media (max-width:1100px){
+    .sidebar{transform:translateX(-100%);box-shadow:var(--shadow);}
+    .sidebar.open{transform:translateX(0);}
+    .content{margin-left:0;}
+  }
+  @media (max-width:900px){
+    .grid{gap:24px 16px;padding:20px 16px 60px;}
+  }
+  @media (min-width:761px){
+    .search-toggle{display:none;}
+    .mobile-back{display:none;}
+  }
+  @media (max-width:760px){
+    .masthead{padding:0 8px;}
+    .mast-mid{
+      position:absolute;left:0;right:0;top:0;height:var(--header-h);
+      padding:8px;background:var(--bg);display:none;z-index:70;
+    }
+    .mast-mid.show{display:flex;}
+    .logo{font-size:18px;}
+  }
+  /* ফোন: এক কলাম, YouTube অ্যাপের মতো edge-to-edge thumbnail */
+  @media (max-width:600px){
+    .grid{grid-template-columns:1fr;gap:24px;padding:12px 0 72px;}
+    .thumb-wrap{border-radius:0;}
+    .title{font-size:15px;margin:10px 12px 0;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ================================================================
+     ⬇⬇⬇  এখানে ভিডিও যোগ করুন / এডিট করুন  ⬇⬇⬇
+     মাত্র ৪টা ফিল্ড:  title | thumbnail | video | duration
+     thumbnail ফাঁকা রাখলে YouTube/Vimeo লিংক থেকে অটো নিয়ে নেবে।
+     ================================================================ -->
+<script>
+const VIDEOS = [
+  {
+    title: "Hot and desperate Dhaka bhabhi riding devar's dick mms",
+    thumbnail: "https://www.desitales2.com/videos/contents/videos_screenshots/3000/3417/320x180/1.jpg",
+    video: "https://cdn.desitales2.com/3000/3417/3417.mp4",
+    duration: "00:49"
+  },
+  {
+    title: "Tamil village wife sweaty late-night fuck by husband mms",
+    thumbnail: "https://www.desitales2.com/videos/contents/videos_screenshots/3000/3497/320x180/1.jpg",
+    video: "https://cdn.desitales2.com/3000/3497/3497.mp4",
+    duration: "05:04"
+  },
+  {
+    title: "Desperate NRI bhabhi secretly riding videsi boss for promotion",
+    thumbnail: "https://www.desitales2.com/videos/contents/videos_screenshots/3000/3410/320x180/1.jpg",
+    video: "https://cdn.desitales2.com/3000/3410/3410.mp4",
+    duration: "01:01"
+  },
+  {
+    title: "Desperate Nepali bhabhi invites her friends son to fuck her",
+    thumbnail: "https://www.desitales2.com/videos/contents/videos_screenshots/1000/1263/320x180/1.jpg",                                                    // ফাঁকা = অটো thumbnail
+    video: "https://cdn.desitales2.com/1000/1263/1263.mp4",
+    duration: "6:02"
+  },
+  {
+    title: "Sexy Guwahati bhabhi blowing devar's dick and riding video",
+    thumbnail: "https://www.desitales2.com/videos/contents/videos_screenshots/2000/2496/320x180/1.jpg",
+    video: "https://cdn.desitales2.com/2000/2496/2496.mp4",
+    duration: "6:11"
+  },
+  {
+    title: "Innocent Aligarh bhabhi seduced & fucked silently by horny devar",
+    thumbnail: "https://www.desitales2.com/videos/contents/videos_screenshots/2000/2291/320x180/1.jpg",
+    video: "https://cdn.desitales2.com/2000/2291/2291.mp4",
+    duration: "1:46"
+  },
+  {
+    title: "Devar sucking big boobs and fucking his sexy Sylhet bhabhi",
+    thumbnail: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=800&q=80",
+    video: "https://cdn.desitales2.com/2000/2272/2272.mp4",
+    duration: "1:29"
+  },
+  {
+    title: "Pakistani maal bhabhi Salma secret sex with neighbour video",
+    thumbnail: "https://www.desitales2.com/videos/contents/videos_screenshots/2000/2230/320x180/1.jpg",
+    video: "https://cdn.desitales2.com/2000/2230/2230.mp4",
+    duration: "4:42"
+  },
+  {
+    title: "Beautiful Bangladeshi girl seduced and fucked by her jija",
+    thumbnail: "https://www.desitales2.com/videos/contents/videos_screenshots/0/962/320x180/4.jpg",
+    video: "https://cdn.desitales2.com/0/962/962.mp4",
+    duration: "1:00"
+  },
+  {
+    title: "Bangladeshi hijab girl cute boobs sucked and tightly fucked by bf",
+    thumbnail: "https://www.desitales2.com/videos/contents/videos_screenshots/0/722/320x180/1.jpg",
+    video: "https://cdn.desitales2.com/0/722/722.mp4",
+    duration: "5:48"
+  },
+  {
+    title: "Sexy desi girl's boobs sucked and cowgirl sex with husband's boss",
+    thumbnail: "https://www.desitales2.com/videos/contents/videos_screenshots/1000/1645/320x180/1.jpg",
+    video: "https://cdn.desitales2.com/1000/1645/1645.mp4",
+    duration: "2:50"
+  },
+  {
+    title: "Shy desi wife's boobs sucked and enjoyed by impatient NRI husband",
+    thumbnail: "https://www.desitales2.com/videos/contents/videos_screenshots/0/686/320x180/1.jpg",
+    video: "https://cdn.desitales2.com/0/686/686.mp4",
+    duration: "2:02"
+  },
+  {
+    title: "Horny Indian guy fucks and destroys cute Chinese girl pussy",
+    thumbnail: "https://www.desitales2.com/videos/contents/videos_screenshots/0/526/320x180/1.jpg",
+    video: "https://cdn.desitales2.com/0/526/526.mp4",
+    duration: "4:56"
+  },
+  {
+    title: "Cunning desi guy teaching sex to shy village cousin girl",
+    thumbnail: "https://www.desitales2.com/videos/contents/videos_screenshots/2000/2217/320x180/1.jpg",
+    video: "https://cdn.desitales2.com/2000/2217/2217.mp4",
+    duration: "2:57"
+  },
+  {
+    title: "Tamil college girl Sanjana hot sex with friend after movies",
+    thumbnail: "https://www.desitales2.com/videos/contents/videos_screenshots/2000/2009/320x180/1.jpg",
+    video: "https://cdn.desitales2.com/2000/2009/2009.mp4",
+    duration: ""
+  },
+  {
+    title: "Indonesian hijab girl rough fucking and cumming in mouth by bf",
+    thumbnail: "https://www.desitales2.com/videos/contents/videos_screenshots/1000/1550/320x180/1.jpg",
+    video: "https://cdn.desitales2.com/1000/1550/1550.mp4",
+    duration: "2:20"
+  },
+  {
+    title: "Indonesian hijab girl sucking dick and fucking with colleague",
+    thumbnail: "https://www.desitales2.com/videos/contents/videos_screenshots/1000/1174/320x180/1.jpg",
+    video: "https://cdn.desitales2.com/1000/1174/1174.mp4",
+    duration: "11:16"
+  },
+  {
+    title: "Cute Malay hijab girl enjoying professor's dick inside her tight hole",
+    thumbnail: "https://www.desitales2.com/videos/contents/videos_screenshots/0/743/320x180/1.jpg",
+    video: "https://cdn.desitales2.com/0/743/743.mp4",
+    duration: "7:26"
+  },
+  {
+    title: "Gorgeous American girl Alyx Star fucked during babysitter interview",
+    thumbnail: "https://www.desitales2.com/videos/contents/videos_screenshots/1000/1230/320x180/1.jpg",
+    video: "https://cdn.desitales2.com/1000/1230/1230.mp4",
+    duration: "25:48"
+  },
+  {
+    title: "Dusky Hindi junior college girl hard fucked by senior guy",
+    thumbnail: "https://www.desitales2.com/videos/contents/videos_screenshots/0/720/320x180/1.jpg",
+    video: "https://cdn.desitales2.com/0/720/720.mp4",
+    duration: "2:09"
+  },
+  {
+    title: "Jaipur college girl pussy fucked hard, enjoyed by lucky boyfriend",
+    thumbnail: "https://www.desitales2.com/videos/contents/videos_screenshots/0/579/320x180/1.jpg",
+    video: "https://cdn.desitales2.com/0/579/579.mp4",
+    duration: "2:38"
+  },
+  {
+    title: "Innocent Kuala Lumpur college girl pussy fucked by bf in hotel",
+    thumbnail: "https://www.desitales2.com/videos/contents/videos_screenshots/2000/2080/320x180/1.jpg",
+    video: "https://cdn.desitales2.com/2000/2080/2080.mp4",
+    duration: "4:04"
+  },
+  {
+    title: "Jannat Toha (Bangladeshi YouTuber and TikToker) viral sex video",
+    thumbnail: "https://www.desitales2.com/videos/contents/videos_screenshots/0/613/320x180/1.jpg",
+    video: "https://cdn.desitales2.com/0/613/613.mp4",
+    duration: "3:21"
+  },
+  {
+    title: "Cute Nepali TikToker Gangu Chettri 7.2 mins viral kanda (video)",
+    thumbnail: "https://www.desitales2.com/videos/contents/videos_screenshots/1000/1765/320x180/1.jpg",
+    video: "https://cdn.desitales2.com/1000/1765/1765.mp4",
+    duration: "7:02"
+  },
+  {
+    title: "Sexy Nepali girl screwed and enjoyed by boyfriend in hostel",
+    thumbnail: "https://www.desitales2.com/videos/contents/videos_screenshots/0/511/320x180/3.jpg",
+    video: "https://cdn.desitales2.com/0/511/511.mp4",
+    duration: "2:13"
+  },
+  {
+    title: "Sexy figure Pokhara girl Rishma hairy pussy fucking by liar bf",
+    thumbnail: "https://www.desitales2.com/videos/contents/videos_screenshots/1000/1867/320x180/1.jpg",
+    video: "https://cdn.desitales2.com/1000/1867/1867.mp4",
+    duration: "2:03"
+  },
+  {
+    title: "Hot Nepali girlfriend Kanchan with sexy boobs riding lover's dick",
+    thumbnail: "https://www.desitales2.com/videos/contents/videos_screenshots/1000/1142/320x180/1.jpg",
+    video: "https://cdn.desitales2.com/1000/1142/1142.mp4",
+    duration: "1:18"
+  },
+  {
+    title: "Is This Kakuma Reang Viral Sex Video Real?!",
+    thumbnail: "https://www.desitales2.com/videos/contents/videos_screenshots/0/587/320x180/1.jpg",
+    video: "https://cdn.desitales2.com/0/587/587.mp4",
+    duration: "1:08"
+  },
+  {
+    title: "Bhojpuri actress, dancer Trisha Kar Madhu viral sex video (FULL)",
+    thumbnail: "https://www.desitales2.com/videos/contents/videos_screenshots/0/609/320x180/1.jpg",
+    video: "https://cdn.desitales2.com/0/609/609.mp4",
+    duration: "22:43"
+  },
+  {
+    title: "Hot Thai tour guide girl screwed by lucky middle-aged manager",
+    thumbnail: "https://www.desitales2.com/videos/contents/videos_screenshots/1000/1999/320x180/1.jpg",
+    video: "https://cdn.desitales2.com/1000/1999/1999.mp4",
+    duration: "2:34"
+  },
+  {
+    title: "Beautiful Chinese Indonesian girl fucking with boyfriend",
+    thumbnail: "https://www.desitales2.com/videos/contents/videos_screenshots/0/636/320x180/1.jpg",
+    video: "https://cdn.desitales2.com/0/636/636.mp4",
+    duration: "5:53"
+  },  
+  {
+    title: "Beautiful Myanmar hotel receptionist girl screwed by manager",
+    thumbnail: "https://www.desitales2.com/videos/contents/videos_screenshots/1000/1339/320x180/5.jpg",
+    video: "https://www.desitales2.com/videos/get_file/2/f5f348e217ce60af34467603e85bb1e7/1000/1339/1339.mp4/?v-acctoken=NDE2fDF8MHw2N2Q1ZDBiNTQ3NjcxMjkwOTVjMTZkYjQ0MTg3NDBhYgac8a134ee6845a88&rnd=1785877385565",
+    duration: "2:02"
+  },  
+  {
+    title: "Warehouse employee fucking busty Spanish manager on job",
+    thumbnail: "https://www.desitales2.com/videos/contents/videos_screenshots/1000/1528/320x180/1.jpg",
+    video: "https://www.desitales2.com/videos/get_file/2/1407d5e5ac5b7c477a070a04d080bed8/1000/1528/1528.mp4/?v-acctoken=NTE4fDF8MHw3N2E1YTVkNzVkOTFhYjI3MjRlZWQwMTQyNTRkZTc0OQ27e65636ecbf754c&rnd=1785877486840",
+    duration: "4:13"
+  },  
+  {
+    title: "South Indian actress look-alike Spanish model fucked by rich guy",
+    thumbnail: "https://www.desitales2.com/videos/contents/videos_screenshots/1000/1797/320x180/1.jpg",
+    video: "https://www.desitales2.com/videos/get_file/2/386c9aa86af5487fc3ac93c8b76ff661/1000/1797/1797.mp4/?v-acctoken=NjI4fDF8MHxmYzI2ZDZjYWY3MjBiN2EwZDYyMTY4N2E2NDA3NTNmYw9d461b416ace2779&rnd=1785877576652",
+    duration: "5:23"
+  },
+  {
+    title: "donesian girl recording getting pussy pounded by bf",
+    thumbnail: "https://www.desitales2.com/videos/contents/videos_screenshots/1000/1212/320x180/1.jpg",
+    video: "https://www.desitales2.com/videos/get_file/2/da08b6fb71b06e470e4a6d96c8ef24ec/1000/1212/1212.mp4/?v-acctoken=OTI5fDF8MHxhMmNjNzIzZWM3MWJiMzM4M2VkZmUzZGU1OTBmYzI4Nw8ab2d8eb1086025c&rnd=1785877729279",
+    duration: "1:01"
+  },
+  {
+    title: "Indonesian hijab girl sucking dick and fucking with colleague",
+    thumbnail: "https://www.desitales2.com/videos/contents/videos_screenshots/1000/1174/320x180/1.jpg",
+    video: "https://www.desitales2.com/videos/get_file/2/d901f3c4b5d260e39c7e53175b7b036c/1000/1174/1174.mp4/?v-acctoken=MzcyfDF8MHwyYTQ0YmIxMTU5ZGI3ZDgwNjEzY2FiNjlkYzIyZjkyNg78b1f4a667274667&rnd=1785877882463",
+    duration: "11:16"
+  },
+  {
+    title: "Shy Indonesian girlfriend invited to apartment and screwed by bf",
+    thumbnail: "https://www.desitales2.com/videos/contents/videos_screenshots/1000/1268/320x180/1.jpg",
+    video: "https://www.desitales2.com/videos/get_file/2/26615a95b7c6c4ac4279c52672603005/1000/1268/1268.mp4/?v-acctoken=MzQzfDF8MHxmMmQ0YTM0NWZkMDA5Mjc1ZTk5ZjM5MTJmMjJmYTc5MA5338f2a264df47fa&rnd=1785877949636",
+    duration: "3:18"
+  },
+  {
+    title: "Shy Filipino babe's reverse cowgirl and hardcore missionary sex",
+    thumbnail: "https://www.desitales2.com/videos/contents/videos_screenshots/2000/2176/320x180/1.jpg",
+    video: "https://www.desitales2.com/videos/get_file/2/ddddf5cff41ec914a9dc64fc45412b04/2000/2176/2176.mp4/?v-acctoken=MTQ3NnwxfDB8NzdiMGVjMTQ5OTExZjgzZjZhMDY1ZDZiOWQ3NWRmMWUf7bf5142e46687f8&rnd=1785878038138",
+    duration: "3:41"
+  },
+  {
+    title: "",
+    thumbnail: "",
+    video: "",
+    duration: ""
+  },
+  {
+    title: "",
+    thumbnail: "",
+    video: "",
+    duration: ""
+  },
+  {
+    title: "",
+    thumbnail: "",
+    video: "",
+    duration: ""
+  },
+  {
+    title: "Hot bhabhi in secret affair giving head and fucking friend's brother",
+    thumbnail: "https://www.desitales2.com/videos/contents/videos_screenshots/2000/2219/320x180/1.jpg",
+    video: "https://cdn.desitales2.com/2000/2219/2219.mp4",
+    duration: "15:12"
+  }
+];
+</script>
+<!-- ================================================================
+     ⬆⬆⬆  ভিডিও লিস্ট শেষ  ⬆⬆⬆
+     ================================================================ -->
+
+<!-- ============ HEADER ============ -->
+<header class="masthead">
+  <div class="mast-start">
+    <button class="icon-btn" id="menuBtn" aria-label="Menu">
+      <svg viewBox="0 0 24 24"><path d="M21 6H3V5h18v1zm0 5H3v1h18v-1zm0 6H3v1h18v-1z"/></svg>
+    </button>
+    <a href="#" class="logo"><span class="play"></span>VidTube</a>
+  </div>
+
+  <div class="mast-mid" id="searchWrap">
+    <button class="icon-btn mobile-back" id="searchBack" aria-label="Back">
+      <svg viewBox="0 0 24 24"><path d="M20 11H7.8l5.6-5.6L12 4l-8 8 8 8 1.4-1.4L7.8 13H20v-2z"/></svg>
+    </button>
+    <form class="search-form" id="searchForm">
+      <label class="search-box">
+        <input type="search" id="searchInput" placeholder="Search" autocomplete="off" />
+      </label>
+      <button class="search-btn" type="submit" aria-label="Search">
+        <svg viewBox="0 0 24 24"><path d="M20.87 20.17l-5.59-5.59C16.35 13.35 17 11.75 17 10c0-3.87-3.13-7-7-7s-7 3.13-7 7 3.13 7 7 7c1.75 0 3.35-.65 4.58-1.71l5.59 5.59.7-.71zM10 16c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z"/></svg>
+      </button>
+    </form>
+  </div>
+
+  <div class="mast-end">
+    <button class="icon-btn search-toggle" id="searchToggle" aria-label="Search">
+      <svg viewBox="0 0 24 24"><path d="M20.87 20.17l-5.59-5.59C16.35 13.35 17 11.75 17 10c0-3.87-3.13-7-7-7s-7 3.13-7 7 3.13 7 7 7c1.75 0 3.35-.65 4.58-1.71l5.59 5.59.7-.71zM10 16c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z"/></svg>
+    </button>
+    <button class="icon-btn" id="themeBtn" aria-label="Toggle theme">
+      <svg id="themeIcon" viewBox="0 0 24 24"></svg>
+    </button>
+    <div class="avatar">S</div>
+  </div>
+</header>
+
+<!-- ============ LAYOUT ============ -->
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="side-group">
+      <a href="#" class="side-link active">
+        <svg viewBox="0 0 24 24"><path d="M4 10v10h5v-6h6v6h5V10L12 3z"/></svg> Home
+      </a>
+      <a href="./page2.html" class="side-link">
+        <svg viewBox="0 0 24 24"><path d="M10 14.65v-5.3L15 12l-5 2.65zm7.77-4.33c-.77-.32-1.2-.5-1.2-.5L18 9.06c1.84-.96 2.53-3.23 1.56-5.06s-3.24-2.53-5.07-1.56L6 6.94c-1.29.68-2.07 2.04-2 3.49.07 1.42.93 2.67 2.22 3.25.03.01 1.2.5 1.2.5L6 14.93c-1.83.97-2.53 3.24-1.56 5.07.97 1.83 3.24 2.53 5.07 1.56l8.5-4.5c1.29-.68 2.06-2.04 1.99-3.49-.07-1.42-.94-2.68-2.23-3.25z"/></svg> Page2
+      </a>
+      <a href="#" class="side-link">
+        <svg viewBox="0 0 24 24"><path d="M10 18v-6l5 3-5 3zm7-15H7v1h10V3zm3 3H4v1h16V6zm2 3H2v12h20V9z"/></svg> Subscriptions
+      </a>
+    </div>
+    <div class="side-group">
+      <div class="side-title">You</div>
+      <a href="#" class="side-link">
+        <svg viewBox="0 0 24 24"><path d="M14.97 16.95L10 13.87V7h2v5.76l4.03 2.49-1.06 1.7zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg> History
+      </a>
+      <a href="#" class="side-link">
+        <svg viewBox="0 0 24 24"><path d="M22 7H2v1h20V7zm-9 5H2v-1h11v1zm0 4H2v-1h11v1zm2 3v-8l7 4-7 4z"/></svg> Playlists
+      </a>
+      <a href="#" class="side-link">
+        <svg viewBox="0 0 24 24"><path d="M11 7l6 3.5L11 14V7zm7 13H4V6H3v15h15v-1zm3-3H6V3h15v14zM7 16h13V4H7v12z"/></svg> Watch later
+      </a>
+      <a href="#" class="side-link">
+        <svg viewBox="0 0 24 24"><path d="M18.77 11h-4.23l1.52-4.94C16.38 5.03 15.54 4 14.38 4c-.58 0-1.14.24-1.52.65L7 11H3v10h4h1h9.43c1.06 0 1.98-.67 2.19-1.61l1.34-6C21.23 12.15 20.18 11 18.77 11z"/></svg> Liked videos
+      </a>
+    </div>
+    <div class="side-group">
+      <div class="side-title">Explore</div>
+      <a href="#" class="side-link">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm2.19 12.19l-8.28 2.94 2.94-8.28 8.28-2.94-2.94 8.28z"/></svg> Trending
+      </a>
+      <a href="#" class="side-link">
+        <svg viewBox="0 0 24 24"><path d="M12 3v10.55A4 4 0 1014 17V7h4V3h-6z"/></svg> Music
+      </a>
+      <a href="#" class="side-link">
+        <svg viewBox="0 0 24 24"><path d="M15 7.5V2H9v5.5l3 3 3-3zM7.5 9H2v6h5.5l3-3-3-3zM9 16.5V22h6v-5.5l-3-3-3 3zM16.5 9l-3 3 3 3H22V9h-5.5z"/></svg> Gaming
+      </a>
+    </div>
+  </aside>
+
+  <div class="scrim" id="scrim"></div>
+
+  <div class="content" id="content">
+    <div class="grid" id="grid"></div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   লিংক পার্স — শুধু thumbnail অটো বের করার জন্য
+   ============================================================ */
+function parseVideo(url){
+  if(!url) return {type:"none"};
+  const u = String(url).trim();
+
+  // YouTube: watch?v= | youtu.be/ | /embed/ | /shorts/ | /live/
+  const yt = u.match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/|v\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+  if(yt) return {type:"youtube", id:yt[1], src:u};
+
+  // Vimeo
+  const vm = u.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+  if(vm) return {type:"vimeo", id:vm[1], src:u};
+
+  return {type:"link", src:u};
+}
+
+/* thumbnail না দিলে লিংক থেকে অটো বের করা */
+function thumbFor(v){
+  if(v.thumbnail) return v.thumbnail;
+  const p = parseVideo(v.video);
+  if(p.type === "youtube") return "https://i.ytimg.com/vi/" + p.id + "/hqdefault.jpg";
+  if(p.type === "vimeo")   return "https://vumbnail.com/" + p.id + ".jpg";
+  return "data:image/svg+xml;utf8," + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180"><rect width="320" height="180" fill="#303030"/><polygon points="140,64 140,116 186,90" fill="#8a8a8a"/></svg>'
+  );
+}
+
+function esc(s){
+  return String(s == null ? "" : s)
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+}
+
+/* ============================================================
+   কার্ড রেন্ডার
+   ============================================================ */
+const grid = document.getElementById("grid");
+
+function render(list){
+  grid.innerHTML = "";
+
+  if(!list.length){
+    grid.innerHTML = '<div class="empty"><strong>কোনো ভিডিও পাওয়া যায়নি</strong>অন্য কিছু দিয়ে খুঁজে দেখুন।</div>';
+    return;
+  }
+
+  list.forEach(function(v){
+    // পুরো কার্ডটাই একটা <a> — ক্লিক করলে সরাসরি video লিংকে চলে যাবে
+    const card = document.createElement("a");
+    card.className = "card";
+    card.href = v.video || "#";
+    card.target = "_blank";
+    card.rel = "noopener";
+
+    card.innerHTML =
+      '<div class="thumb-wrap">' +
+        '<img src="' + esc(thumbFor(v)) + '" alt="' + esc(v.title) + '" loading="lazy">' +
+        (v.duration ? '<span class="duration">' + esc(v.duration) + '</span>' : '') +
+        '<div class="play-overlay"><span></span></div>' +
+      '</div>' +
+      '<h3 class="title">' + esc(v.title || "Untitled") + '</h3>';
+
+    grid.appendChild(card);
+  });
+}
+
+/* ============================================================
+   সার্চ — title দিয়ে ফিল্টার
+   ============================================================ */
+let query = "";
+
+function apply(){
+  const q = query.trim().toLowerCase();
+  render(VIDEOS.filter(function(v){
+    return !q || String(v.title || "").toLowerCase().indexOf(q) !== -1;
+  }));
+}
+
+document.getElementById("searchForm").addEventListener("submit", function(e){ e.preventDefault(); });
+document.getElementById("searchInput").addEventListener("input", function(e){
+  query = e.target.value;
+  apply();
+});
+
+/* ============================================================
+   সাইডবার — বড় স্ক্রিনে push, ছোট স্ক্রিনে overlay
+   ============================================================ */
+const sidebar = document.getElementById("sidebar");
+const content = document.getElementById("content");
+const scrim   = document.getElementById("scrim");
+
+document.getElementById("menuBtn").addEventListener("click", function(){
+  if(window.innerWidth <= 1100){
+    const open = sidebar.classList.toggle("open");
+    scrim.classList.toggle("show", open);
+    document.body.classList.toggle("no-scroll", open);
+  }else{
+    const collapsed = sidebar.classList.toggle("collapsed");
+    content.classList.toggle("wide", collapsed);
+  }
+});
+
+scrim.addEventListener("click", function(){
+  sidebar.classList.remove("open");
+  scrim.classList.remove("show");
+  document.body.classList.remove("no-scroll");
+});
+
+window.addEventListener("resize", function(){
+  if(window.innerWidth > 1100){
+    sidebar.classList.remove("open");
+    scrim.classList.remove("show");
+    document.body.classList.remove("no-scroll");
+  }else{
+    sidebar.classList.remove("collapsed");
+    content.classList.remove("wide");
+  }
+});
+
+/* ============ মোবাইল সার্চ ============ */
+const searchWrap = document.getElementById("searchWrap");
+document.getElementById("searchToggle").addEventListener("click", function(){
+  searchWrap.classList.add("show");
+  document.getElementById("searchInput").focus();
+});
+document.getElementById("searchBack").addEventListener("click", function(){
+  searchWrap.classList.remove("show");
+});
+
+/* ============ থিম (ডার্ক / লাইট) ============ */
+const MOON = '<path d="M12 3a9 9 0 109 9c0-.46-.04-.92-.1-1.36A5.39 5.39 0 0116 13a5.4 5.4 0 01-5.4-5.4c0-1.81.89-3.41 2.26-4.4-.28-.13-.57-.2-.86-.2z"/>';
+const SUN  = '<circle cx="12" cy="12" r="4"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3M4.9 4.9l2.1 2.1m10 10l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>';
+
+function setTheme(t){
+  document.documentElement.setAttribute("data-theme", t);
+  document.getElementById("themeIcon").innerHTML = (t === "light" ? SUN : MOON);
+  try{ localStorage.setItem("vidtube-theme", t); }catch(e){}
+}
+
+document.getElementById("themeBtn").addEventListener("click", function(){
+  setTheme(document.documentElement.getAttribute("data-theme") === "light" ? "dark" : "light");
+});
+
+let savedTheme = null;
+try{ savedTheme = localStorage.getItem("vidtube-theme"); }catch(e){}
+setTheme(savedTheme || (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark"));
+
+/* ============ শুরু ============ */
+apply();
+</script>
+</body>
+</html>
